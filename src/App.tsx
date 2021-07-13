@@ -1,24 +1,90 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { useEffect, useState } from "react";
+import io from "socket.io-client";
+import ProductAdd from "./components/ProductAdd";
+import ProductList from "./components/ProductList";
+import { Products } from "./interfaces/products.interface";
+
+const connectSocketServer = () => {
+  const socket = io("http://localhost:8080/", {
+    transports: ["websocket"],
+  });
+  return socket;
+};
 
 function App() {
+  const [socket] = useState(connectSocketServer());
+  const [online, setOnline] = useState<boolean>(false);
+  const [products, setProducts] = useState<Products[]>([]);
+
+  //Initilization of socket client
+  useEffect(() => {
+    setOnline(socket.connected);
+  }, [socket]);
+
+  //seteamos el valor cuando se conecta
+  useEffect(() => {
+    socket.on("connect", () => {
+      setOnline(true);
+    });
+  }, [socket]);
+
+  //seteamos el valor cuando se desconecta
+  useEffect(() => {
+    socket.on("disconnect", () => {
+      setOnline(false);
+    });
+  }, [socket]);
+
+  //escuchamos cualquier evento emitido del servidor con el key "current-products"
+  useEffect(() => {
+    socket.on("current-products", (products) => {
+      setProducts(products);
+    });
+  }, [socket]);
+
+  //function para dar like al producto
+  const likeProduct = (id: string) => {
+    socket.emit("like-product", id);
+  };
+
+  //function para cambiar el nombre al producto
+  const changeNameProduct = (id: string, name: string) => {
+    socket.emit("change-name-product", { id, name });
+  };
+
+  //function para cambiar el nombre al producto
+  const deleteProduct = (id: string) => {
+    socket.emit("delete-product", id);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
+    <div className="container">
+      <div className="alert">
         <p>
-          Edit <code>src/App.tsx</code> and save to reload.
+          Service Status:
+          {online ? (
+            <span className="text-success">Online</span>
+          ) : (
+            <span className="text-danger">Offline</span>
+          )}
         </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      </div>
+
+      <h1>Lista de Productos</h1>
+      <hr />
+      <div className="row">
+        <div className="col-8">
+          <ProductList
+            products={products}
+            onLikeProduct={likeProduct}
+            onChangeNameProduct={changeNameProduct}
+            onDeleteProduct={deleteProduct}
+          />
+        </div>
+        <div className="col-4">
+          <ProductAdd />
+        </div>
+      </div>
     </div>
   );
 }
