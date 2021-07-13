@@ -43,22 +43,22 @@ function App() {
   }, [socket]);
 
   //function para dar like al producto
-  const likeProduct = (id: string) => {
+  const likeProduct = (id: string): void => {
     socket.emit("like-product", id);
   };
 
   //function para cambiar el nombre al producto
-  const changeNameProduct = (id: string, name: string) => {
+  const changeNameProduct = (id: string, name: string): void => {
     socket.emit("change-name-product", { id, name });
   };
 
   //function para cambiar el nombre al producto
-  const deleteProduct = (id: string) => {
+  const deleteProduct = (id: string): void => {
     socket.emit("delete-product", id);
   };
 
   //function para cambiar el nombre al producto
-  const addProduct = (name: string) => {
+  const addProduct = (name: string): void => {
     socket.emit("add-product", name);
   };
 
