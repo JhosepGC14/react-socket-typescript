@@ -1,18 +1,22 @@
-import { ChangeEvent, FormEvent, useState } from "react";
+import { ChangeEvent, FormEvent, useContext, useState } from "react";
+import { SocketContext } from "../../context/SocketContext";
+import { SocketContextProps } from "../../interfaces/socket.context.interface";
 
-type ProductAddProps = {
-  onAddProduct: (name: string) => void;
-};
-
-const ProductAdd = ({ onAddProduct }: ProductAddProps) => {
+const ProductAdd = () => {
   const [newName, setNewName] = useState<string>("");
+  const { socket } = useContext<SocketContextProps>(SocketContext);
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (newName.trim().length > 0) {
-      onAddProduct(newName);
+      addProduct(newName);
       setNewName("");
     }
+  };
+
+  //function para cambiar el nombre al producto
+  const addProduct = (name: string): void => {
+    socket.emit("add-product", name);
   };
 
   const handleChangeName = (e: ChangeEvent<HTMLInputElement>) => {

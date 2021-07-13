@@ -1,25 +1,21 @@
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useContext, useEffect, useState } from "react";
+import { SocketContext } from "../../context/SocketContext";
+import { SocketContextProps } from "../../interfaces/socket.context.interface";
 import { Products } from "../../interfaces/products.interface";
 
-type ProductListProps = {
-  products: Products[];
-  onLikeProduct: (id: string) => void;
-  onChangeNameProduct: (id: string, name: string) => void;
-  onDeleteProduct: (id: string) => void;
-};
+const ProductList = () => {
+  //state y context
+  const [productos, setProductos] = useState<Products[]>([]);
+  const { socket } = useContext<SocketContextProps>(SocketContext);
 
-const ProductList = ({
-  products,
-  onLikeProduct,
-  onChangeNameProduct,
-  onDeleteProduct,
-}: ProductListProps) => {
-  const [productos, setProductos] = useState(products);
-
-  //useffect que setea la data si existe algun cambio
+  //escuchamos cualquier evento emitido del servidor con el key "current-products"
   useEffect(() => {
-    setProductos(products);
-  }, [products]);
+    socket.on("current-products", (products: Products[]) => {
+      setProductos(products);
+    });
+
+    return () => socket.off("current-products");
+  }, [socket]);
 
   //onChange del input
   const onChangeName = (event: ChangeEvent<HTMLInputElement>, id: string) => {
@@ -36,7 +32,22 @@ const ProductList = ({
 
   //onBlur del input para que cuando desenfoque haga un evento
   const onBlurChange = (id: string, newName: string) => {
-    onChangeNameProduct(id, newName);
+    changeNameProduct(id, newName);
+  };
+
+  //function para dar like al producto
+  const likeProduct = (id: string): void => {
+    socket.emit("like-product", id);
+  };
+
+  //function para cambiar el nombre al producto
+  const changeNameProduct = (id: string, name: string): void => {
+    socket.emit("change-name-product", { id, name });
+  };
+
+  //function para cambiar el nombre al producto
+  const deleteProduct = (id: string): void => {
+    socket.emit("delete-product", id);
   };
 
   //function para crear las filas de la tabla
@@ -46,7 +57,7 @@ const ProductList = ({
         <td>
           <button
             className="btn btn-primary"
-            onClick={() => onLikeProduct(item.id)}
+            onClick={() => likeProduct(item.id)}
           >
             {" "}
             +1{" "}
@@ -67,7 +78,7 @@ const ProductList = ({
         <td>
           <button
             className="btn btn-danger"
-            onClick={() => onDeleteProduct(item.id)}
+            onClick={() => deleteProduct(item.id)}
           >
             <i className="bi bi-trash"></i>
           </button>
