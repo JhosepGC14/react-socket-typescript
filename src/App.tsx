@@ -57,11 +57,16 @@ function App() {
     socket.emit("delete-product", id);
   };
 
+  //function para cambiar el nombre al producto
+  const addProduct = (name: string) => {
+    socket.emit("add-product", name);
+  };
+
   return (
     <div className="container">
       <div className="alert">
         <p>
-          Service Status:
+          Service Status:{" "}
           {online ? (
             <span className="text-success">Online</span>
           ) : (
@@ -82,7 +87,7 @@ function App() {
           />
         </div>
         <div className="col-4">
-          <ProductAdd />
+          <ProductAdd onAddProduct={addProduct} />
         </div>
       </div>
     </div>
